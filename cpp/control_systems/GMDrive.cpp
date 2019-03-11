@@ -30,6 +30,8 @@ GMDrive::GMDrive(int* left, int* right) {
 	rev::CANSparkMax::ExternalFollower right_master_follower(rev::CANSparkMax::kFollowerPhoenix);
 	r_slave1->Follow(right_master_follower, 4, false);
 	r_slave2->Follow(right_master_follower, 4, false);
+
+	shifter = new frc::Solenoid(0);
 	
 	//use following lines for programming chassis and 2018 bot
 	// l_slave1 = new WPI_VictorSPX(left[1]);
@@ -52,7 +54,6 @@ void GMDrive::SetSafetyEnabled(bool value) {
 
 void GMDrive::TankDrive(float l, float r, bool squared_inputs) {
 	this->drive->TankDrive(l, r, squared_inputs);
-	// cout << "inches: " << this->getLeftTicks() / ratio << endl;
 }
 
 void GMDrive::driveSetFeet(float setpoint_l, float setpoint_r) {
@@ -156,6 +157,10 @@ float GMDrive::getLeftTicks() {
 
 float GMDrive::getRightTicks() {
 	return r_master->GetSelectedSensorPosition(0);
+}
+
+void GMDrive::updateShifter(bool update) {
+	shifter->Set(update);
 }
 
 void GMDrive::resetEncoders() {

@@ -27,8 +27,8 @@ vector<float> Tracking::getTurnAdjustmentPercents(int camera, int pipeline) {
 	float targetX = table->GetNumber("tx", 0);
 	float headingError = -targetX;
 	float steeringAdjust = 0.0f;
-	float minCommand = 0.05;
-	float Kp = -0.01f;
+	float minCommand = 0.04;
+	float Kp = -0.0075f;
 	float leftCommand;
 	float rightCommand;
 

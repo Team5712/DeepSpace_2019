@@ -22,41 +22,31 @@ class Elevator
     rev::CANSparkMax *elevator_master;
     rev::CANSparkMax *elevator_slave;
 
-    rev::CANPIDController *pid_controller;
-
     AnalogPotentiometer *pot;
 
-    WPI_VictorSPX *elevator_passover;
+    float max_height = 78;
+    
   public:
     Elevator();
 
     float getPosition();
+
     void setPosition(float);
 
-    /**
-     * @param bool front or back
-     * 
-     * true is front, false if back
-     * 
-     */
-    void setPassover(bool);
-
     void setPower(float);
-    void initPID();
 
     struct elevator_pid {
       float prev_error = 0;
-
-      float Kminoutput = -0.1;
-      float Kmaxoutput = 0.5;
+      float Kminoutput = -0.205;
+      float Kmaxoutput = 0.70;
       float i_state = 0;
       float Kp = 0.065;
       float Ki = 0.0;
       float Kd = 0.0;
       float Kf = 0.0;
       float i_zone = 0.0;
-    } pid;   
+    } pid; 
 
-  };
+};
 
 #endif /* SRC_CONTROL_SYSTEMS_ELEVATOR_H_ */

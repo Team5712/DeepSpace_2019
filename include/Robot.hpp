@@ -16,6 +16,7 @@
 #include <control_systems/Climber.h>
 #include <control_systems/Elevator.h>
 #include <control_systems/Intake.h>
+#include <control_systems/Passover.h>
 
 #include "vision/Tracking.h"
 
@@ -57,10 +58,15 @@ private:
   GyroCorrection *gyro_correction;
   Climber *climber;
   Elevator *elevator;
+  Passover *passover;
   Intake *intake;
+
+  Solenoid *shifter;
 
 
   Timer low_rider_timer;
+
+  Timer timer_climber;
 
   float low_rider_delay = 1;
 
@@ -78,6 +84,14 @@ private:
 
   bool is_front_raised = false;
   bool is_back_raised = false;
+
+  bool is_climber_reset = false;
+
+  bool is_pot_zero = false;
+
+  Timer timer_climb_double_tap;
+
+  float climb_double_tap_time_frame;
 
   // TODO: implement this on the right side and fix the stuff
   // frc::DifferentialDrive *drive_system;
@@ -102,6 +116,15 @@ private:
   	  {"start", 8},
   	  {"left_click", 9},
   	  {"right_click", 10},
+      {"pov_none", -1},
+      {"pov_top", 0},
+      {"pov_top_right", 45},
+      {"pov_right", 90},
+      {"pov_bottom_right", 135},
+      {"pov_bottom", 180},
+      {"pov_bottom_left", 225},
+      {"pov_left", 270},
+      {"pov_top_left", 315}, 
   };
 
 
@@ -126,5 +149,7 @@ private:
   //...............................................................................
   void handleDriverInput();
   void handleAuxiliaryInput();
+  void handleClimb();
+  bool resetClimber();
   void resetDriveValues();
 };

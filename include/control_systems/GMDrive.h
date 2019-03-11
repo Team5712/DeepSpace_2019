@@ -46,6 +46,8 @@ class GMDrive
 	float getRightTicks();
 	float getLeftTicks();
 
+	void updateShifter(bool);
+
 	void initPID();
 
   private:
@@ -65,6 +67,8 @@ class GMDrive
 	rev::CANSparkMax *l_slave2;
 	rev::CANSparkMax *r_slave1;
 	rev::CANSparkMax *r_slave2;
+
+	frc::Solenoid *shifter;
 
 	// use for programming chassis and 2018 bot
 	// WPI_VictorSPX *l_slave1;
