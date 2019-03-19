@@ -7,7 +7,7 @@ GyroCorrection::GyroCorrection(AHRS *gyro) {
 vector<float> GyroCorrection::adjustDrive() {
     if(gyro_skip <= 0) {
 		gyro_error = abs(gyro->GetYaw());
-        cout << gyro->GetYaw() << endl;
+        // cout << gyro->GetYaw() << endl;
     }
 
 	// right

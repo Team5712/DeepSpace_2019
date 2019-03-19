@@ -58,8 +58,8 @@ void Elevator::setPosition(float setpoint) {
     float final_output = -fminf(fmaxf(output, pid.Kminoutput), pid.Kmaxoutput);
     cout << "final output" << final_output << endl;
 
-
-    setPower(-final_output);
+    //COMP BOT IS NEGATIVE
+    setPower(final_output);
 }
 
 

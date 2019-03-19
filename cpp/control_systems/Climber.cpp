@@ -11,8 +11,8 @@ Climber::Climber()
 	front_lift = new WPI_TalonSRX(8);
 	low_rider = new WPI_VictorSPX(9);
 
-	front_lift->SetSensorPhase(true);
-	back_lift->SetSensorPhase(true);
+	front_lift->SetSensorPhase(false);
+	back_lift->SetSensorPhase(false);
 }
 
 void Climber::setLiftPower(float front, float back)
@@ -79,7 +79,7 @@ void Climber::sustainFront()
 
 bool Climber::raiseFront()
 {
-	cout << "front " << front_lift->GetSelectedSensorPosition(0) << endl;
+	// cout << "front " << front_lift->GetSelectedSensorPosition(0) << endl;
 	if (front_lift->GetSelectedSensorPosition(0) >= climb_max)
 	{
 		front_lift->Set(-raise_speed);
@@ -94,7 +94,7 @@ bool Climber::raiseFront()
 
 bool Climber::raiseBack()
 {
-	cout << "back " << back_lift->GetSelectedSensorPosition(0) << endl;
+	// cout << "back " << back_lift->GetSelectedSensorPosition(0) << endl;
 	if (back_lift->GetSelectedSensorPosition(0) >= climb_max)
 	{
 		back_lift->Set(raise_speed);
@@ -182,8 +182,8 @@ void Climber::stopBack()
 
 void Climber::resetEncoders()
 {
-	front_lift->SetSelectedSensorPosition(0, 0, 0.0001);
-	back_lift->SetSelectedSensorPosition(0, 0, 0.0001);
+	front_lift->SetSelectedSensorPosition(0, 0, 50);
+	back_lift->SetSelectedSensorPosition(0, 0, 50);
 }
 
 void Climber::setLowRider(float power)

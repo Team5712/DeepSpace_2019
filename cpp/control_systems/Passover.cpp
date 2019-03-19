@@ -51,7 +51,24 @@ void Passover::setPosition(float setpoint) {
 
 
 void Passover::setPower(float power) {
-    // going to the front
+    // going to the front TODO: UNCOMMENT THESE
+    // if(power > 0) {
+    //     if(getPosition() <= max_front) {
+    //         motor->Set(power);
+    //     } else {
+    //         motor->Set(0);
+    //     }
+    //     // going to the back
+    // } else if(power < 0) {
+    //     if(getPosition() >= max_back) {
+    //         motor->Set(power);
+    //     } else {
+    //         motor->Set(0);
+    //     }
+    // } else {
+    //     motor->Set(0);
+    // }  
+    //COMP BOT
     if(power < 0) {
         if(getPosition() <= max_front) {
             motor->Set(power);
@@ -68,6 +85,7 @@ void Passover::setPower(float power) {
     } else {
         motor->Set(0);
     }
+
 }
 
 void Passover::sendPassoverBack() {

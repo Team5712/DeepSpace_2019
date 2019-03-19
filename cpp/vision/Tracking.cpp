@@ -23,20 +23,40 @@ vector<float> Tracking::getTurnAdjustmentPercents(int camera, int pipeline) {
 	} else {
 		cout << "Camera not specified " << camera << endl;
 	}
-
-	float targetX = table->GetNumber("tx", 0);
+	float targetA = table->GetNumber("ta", 0);
+	float targetX = table->GetNumber("tx", 0); //This caluates the x angle if camera was centered
+	//To calulate aDistance, bDistance, and cDistance. Go to Desmos, make a table, plot the distance on the left and ta value on right side.
+	/*float aDistance=4.92023;
+	float bDistance=.588173;
+	float cDistance=.133908;
+	float distanceAdjust=1; //Lower value to get tower distance if constantly high. Raise distance to get larger distance
+	//To calulate aAngle, bAngle, cAngle. Go to Desmos, make a table, plot the distance on the left and tx value on right side.
+	float aAngle=-25.2663;
+	float bAngle=.648492;
+	float cAngle=-2.22648;
+	float angleAdjust=2; //Lower value to turn farther one way and raise to go farther way.
+	float distance = log((targetA-cDistance)/aDistance)/log(bDistance)*distanceAdjust; //Calculates distance to targer
+	float targetX=(aAngle*pow(bAngle,distance)+cAngle)*angleAdjust; //Calculate what angle it should be at */
 	float headingError = -targetX;
 	float steeringAdjust = 0.0f;
 	float minCommand = 0.04;
 	float Kp = -0.0075f;
 	float leftCommand;
 	float rightCommand;
-
-	if (targetX > 1.0) {
-		steeringAdjust = Kp * headingError + minCommand;
-	} else if (targetX < 1.0) {
+	//cout << "targerA" << targetA << endl;
+	cout << "targetX" << targetX << endl;
+	//cout << "targetXCenter" << targetXCenter << endl;
+	//cout << "Angle to Turn" << targetX << endl;
+	/*cout << "Distance" << distance << endl;
+	cout << "Calculated Angle" << targetX <<endl;
+	cout << "Limelight Angle" << targetXCenter <<endl;
+	//cout << "Offset" << xOffset << endl; */
+	if (targetX < -1) {
 		steeringAdjust = Kp * headingError - minCommand;
+	} else if (targetX > 1) {
+		steeringAdjust = Kp * headingError + minCommand;
 	}
+	//CHANGE SIGNS NEED TO TEST
 	leftCommand -= steeringAdjust;
 	rightCommand += steeringAdjust;
 
@@ -88,12 +108,18 @@ float Tracking::getDriveFromSetPointTicks(float net_distance) {
 	std::shared_ptr<NetworkTable> table =
 		nt::NetworkTableInstance::GetDefault().GetTable("limelight-two");
 
-	float targetW = table->GetNumber("thor", 0);
+	//float targetA = table->GetNumber("ta", 0);
 
 	// y = a*b^x+c
-	const float distance = 304 / targetW;
+	
 
-	return (distance * 12 * ratio) - (net_distance * ratio);
+	
+	//const float distance = 304 / targetW;
+	//float distance = log((targetA-.0344202)/1.68221)/log(.759274)*asin(.86);
+	//float xOffset = sqrt(pow(log((targetA-.0344202)/1.68221)/log(.759274)*asin(.86),2)-pow(log((targetA-.0344202)/1.68221)/log(.759274),2));
+	//return (distance * 12 * ratio) - (net_distance * ratio);
+	//return distance;
+	//return xOffset;
 }
 
 void Tracking::setPipeline(int pipeline) {

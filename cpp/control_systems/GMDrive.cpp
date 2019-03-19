@@ -31,7 +31,9 @@ GMDrive::GMDrive(int* left, int* right) {
 	r_slave1->Follow(right_master_follower, 4, false);
 	r_slave2->Follow(right_master_follower, 4, false);
 
-	shifter = new frc::Solenoid(0);
+
+	shifter = new frc::Solenoid(3); //PRACTICE
+	// COMP BOTshifter = new frc::Solenoid(0);
 	
 	//use following lines for programming chassis and 2018 bot
 	// l_slave1 = new WPI_VictorSPX(left[1]);
@@ -57,8 +59,8 @@ void GMDrive::TankDrive(float l, float r, bool squared_inputs) {
 }
 
 void GMDrive::driveSetFeet(float setpoint_l, float setpoint_r) {
-	cout << "left " << l_master->GetSelectedSensorPosition(0) << endl;
-	cout << "right " << r_master->GetSelectedSensorPosition(0) << endl;
+	std::cout << "left " << l_master->GetSelectedSensorPosition(0) << endl;
+	std::cout << "right " << r_master->GetSelectedSensorPosition(0) << endl;
 	l_master->Set(ControlMode::MotionMagic, setpoint_l * ratio * 12);
 	r_master->Set(ControlMode::MotionMagic, -setpoint_r * ratio * 12);
 }
@@ -75,10 +77,74 @@ void GMDrive::driveSetTicks(float setpoint_l, float setpoint_r) {
 // }
 
 void GMDrive::driveSetInches(float setpoint_l, float setpoint_r) {
-	cout << "left value: " << l_master->GetSelectedSensorPosition(0) << " err " << l_master->GetClosedLoopError(0) << " d: " << l_master->GetSelectedSensorPosition(0) - setpoint_l << endl;
-    cout << "right value: " << r_master->GetSelectedSensorPosition(0) << " err " << r_master->GetClosedLoopError(0) << " d: " << l_master->GetSelectedSensorPosition(0) - setpoint_r << endl;
+	std::cout << "left value: " << l_master->GetSelectedSensorPosition(0) << " err " << l_master->GetClosedLoopError(0) << " d: " << l_master->GetSelectedSensorPosition(0) - setpoint_l << endl;
+    std::cout << "right value: " << r_master->GetSelectedSensorPosition(0) << " err " << r_master->GetClosedLoopError(0) << " d: " << l_master->GetSelectedSensorPosition(0) - setpoint_r << endl;
 	l_master->Set(ControlMode::MotionMagic, setpoint_l * ratio);
 	r_master->Set(ControlMode::MotionMagic, -setpoint_r * ratio);
+}
+
+
+void GMDrive::setPositionTicks(float left_setpoint, float right_setpoint)
+{
+	left_setpoint = -left_setpoint;
+	right_setpoint = -right_setpoint;
+	// error is the distance from where we want to go from where we are now
+	float left_error = left_setpoint - l_master->GetSelectedSensorPosition(0);
+	float right_error = right_setpoint - r_master->GetSelectedSensorPosition(0);
+	//cout << "front " << front_lift->GetSelectedSensorPosition(0) << endl;
+
+	// calculate proportion value
+	float left_p = pid.Kp * left_error;
+	float right_p = pid.Kp * right_error;
+
+	// i_zone for perfecting distance to target
+	if (fabsf(left_error) <= pid.i_zone || pid.i_zone == 0.0f)
+	{
+		pid.left_i_state = pid.left_i_state + (left_error * pid.Ki);
+	}
+	else
+	{
+		pid.left_i_state = 0;
+	}
+
+	// i_zone for perfecting distance to target
+	if (fabsf(right_error) <= pid.i_zone || pid.i_zone == 0.0f)
+	{
+		pid.right_i_state = pid.right_i_state + (right_error * pid.Ki);
+	}
+	else
+	{
+		pid.right_i_state = 0;
+	}
+
+
+	float left_d = (left_error - pid.left_prev_error);
+	pid.left_prev_error = left_error;
+	left_d *= pid.Kd;
+
+	float right_d = (right_error - pid.right_prev_error);
+	pid.right_prev_error = right_error;
+	right_d *= pid.Kd;
+
+	// static feed forward value based on how far we need to go
+	float left_f = left_setpoint * pid.Kf;
+	float right_f = right_setpoint * pid.Kf;
+
+	// add up all of our values for our output
+	float left_output = left_p + pid.left_i_state + left_d + left_f;
+	float right_output = right_p + pid.right_i_state + right_d + right_f;
+
+	// make sure the output is not greater than our max or less than our min
+	float left_final_output = fminf(fmaxf(left_output, pid.min_output), pid.max_output);
+	float right_final_output = fminf(fmaxf(right_output, pid.min_output), pid.max_output);
+	// cout << "output left " << left_final_output << "output right " << right_final_output << endl;
+	// cout << "err left " << left_error << " right " << right_error << endl;
+	this->TankDrive(left_final_output, right_final_output, false);
+}
+
+
+void GMDrive::setPositionInches(float left_position, float right_position) {
+	setPositionTicks(left_position * ratio, right_position * ratio);
 }
 
 void GMDrive::initPID() {
@@ -102,29 +168,29 @@ void GMDrive::initPID() {
 	r_master->ConfigSelectedFeedbackSensor(FeedbackDevice::QuadEncoder, 0,
 			pid.timeout);
 
-	l_master->SelectProfileSlot(0, 0);
-	l_master->Config_kP(0, pid.Kp, pid.timeout);
-	l_master->Config_kI(0, pid.Ki, pid.timeout);
-	l_master->Config_kD(0, pid.Kd, pid.timeout);
-	l_master->Config_kF(0, pid.Kf, pid.timeout);
-	l_master->Config_IntegralZone(0, pid.Kz, pid.timeout);
+	// l_master->SelectProfileSlot(0, 0);
+	// l_master->Config_kP(0, pid.Kp, pid.timeout);
+	// l_master->Config_kI(0, pid.Ki, pid.timeout);
+	// l_master->Config_kD(0, pid.Kd, pid.timeout);
+	// l_master->Config_kF(0, pid.Kf, pid.timeout);
+	// l_master->Config_IntegralZone(0, pid.Kz, pid.timeout);
 
-	r_master->SelectProfileSlot(0, 0);
-	r_master->Config_kP(0, pid.Kp, pid.timeout);
-	r_master->Config_kI(0, pid.Ki, pid.timeout);
-	r_master->Config_kD(0, pid.Kd, pid.timeout);
-	r_master->Config_kF(0, pid.Kf, pid.timeout);
-	r_master->Config_IntegralZone(0, pid.Kz, pid.timeout);
+	// r_master->SelectProfileSlot(0, 0);
+	// r_master->Config_kP(0, pid.Kp, pid.timeout);
+	// r_master->Config_kI(0, pid.Ki, pid.timeout);
+	// r_master->Config_kD(0, pid.Kd, pid.timeout);
+	// r_master->Config_kF(0, pid.Kf, pid.timeout);
+	// r_master->Config_IntegralZone(0, pid.Kz, pid.timeout);
 
-	//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	// Note: these values are are measured to be the fastest speed our robot can attain units/100ms
-	// These may be scaled down so that they are more consistant with one another
-	//..............................................................................................
-	l_master->ConfigMotionAcceleration(pid.accel, pid.timeout);
-	l_master->ConfigMotionCruiseVelocity(pid.vel, pid.timeout);
+	// //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	// // Note: these values are are measured to be the fastest speed our robot can attain units/100ms
+	// // These may be scaled down so that they are more consistant with one another
+	// //..............................................................................................
+	// l_master->ConfigMotionAcceleration(pid.accel, pid.timeout);
+	// l_master->ConfigMotionCruiseVelocity(pid.vel, pid.timeout);
 
-	r_master->ConfigMotionAcceleration(pid.accel, pid.timeout);
-	r_master->ConfigMotionCruiseVelocity(pid.vel, pid.timeout);
+	// r_master->ConfigMotionAcceleration(pid.accel, pid.timeout);
+	// r_master->ConfigMotionCruiseVelocity(pid.vel, pid.timeout);
 }
 
 void GMDrive::ConfigMotionCruiseVelocityLeft(float value) {
@@ -156,7 +222,7 @@ float GMDrive::getLeftTicks() {
 }
 
 float GMDrive::getRightTicks() {
-	return r_master->GetSelectedSensorPosition(0);
+	return r_master->GetSelectedSensorPosition(0); 
 }
 
 void GMDrive::updateShifter(bool update) {
@@ -164,8 +230,9 @@ void GMDrive::updateShifter(bool update) {
 }
 
 void GMDrive::resetEncoders() {
-	l_master->SetSelectedSensorPosition(0, 0, pid.timeout);
-	r_master->SetSelectedSensorPosition(0, 0, pid.timeout);
+	cout << "Restart encoders " << endl;
+	l_master->SetSelectedSensorPosition(0, 0, 50);
+	r_master->SetSelectedSensorPosition(0, 0, 50);
 }
 
 GMDrive::~GMDrive() {
