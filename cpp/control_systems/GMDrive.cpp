@@ -32,8 +32,7 @@ GMDrive::GMDrive(int* left, int* right) {
 	r_slave2->Follow(right_master_follower, 4, false);
 
 
-	shifter = new frc::Solenoid(3); //PRACTICE
-	// COMP BOTshifter = new frc::Solenoid(0);
+	shifter = new frc::Solenoid(0); //PRACTICE is 3 //COMP is 0
 	
 	//use following lines for programming chassis and 2018 bot
 	// l_slave1 = new WPI_VictorSPX(left[1]);

@@ -37,11 +37,11 @@ vector<float> GyroCorrection::adjustClimb() {
 	float front_pitch_adjust;
 	// cout << "pitch: " << gyro->GetRoll() - pitch_zero << "zer " << pitch_zero << endl;
 	// back
-	if(gyro->GetRoll() - pitch_zero > -7) {
+	if(gyro->GetRoll() - pitch_zero > -3) {
 		 cout << "tilting back - raise back legs: " << gyro_correction << endl;
 		back_pitch_adjust = pitch_Kp * pitch_error;
 	// front
-	} else if(gyro->GetRoll() - pitch_zero < -3) {
+	} else if(gyro->GetRoll() - pitch_zero < -7) {
 		 cout << "tilting forward  - raise front legs: " << gyro_correction << endl;
 		front_pitch_adjust = pitch_Kp * pitch_error;
 	} else {

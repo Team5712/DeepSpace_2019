@@ -24,33 +24,16 @@ vector<float> Tracking::getTurnAdjustmentPercents(int camera, int pipeline) {
 		cout << "Camera not specified " << camera << endl;
 	}
 	float targetA = table->GetNumber("ta", 0);
-	float targetX = table->GetNumber("tx", 0); //This caluates the x angle if camera was centered
-	//To calulate aDistance, bDistance, and cDistance. Go to Desmos, make a table, plot the distance on the left and ta value on right side.
-	/*float aDistance=4.92023;
-	float bDistance=.588173;
-	float cDistance=.133908;
-	float distanceAdjust=1; //Lower value to get tower distance if constantly high. Raise distance to get larger distance
-	//To calulate aAngle, bAngle, cAngle. Go to Desmos, make a table, plot the distance on the left and tx value on right side.
-	float aAngle=-25.2663;
-	float bAngle=.648492;
-	float cAngle=-2.22648;
-	float angleAdjust=2; //Lower value to turn farther one way and raise to go farther way.
-	float distance = log((targetA-cDistance)/aDistance)/log(bDistance)*distanceAdjust; //Calculates distance to targer
-	float targetX=(aAngle*pow(bAngle,distance)+cAngle)*angleAdjust; //Calculate what angle it should be at */
+	float targetX = table->GetNumber("tx", 0);
 	float headingError = -targetX;
 	float steeringAdjust = 0.0f;
 	float minCommand = 0.04;
-	float Kp = -0.0075f;
+	float Kp = -0.0047f; //.0075
 	float leftCommand;
 	float rightCommand;
 	//cout << "targerA" << targetA << endl;
 	cout << "targetX" << targetX << endl;
-	//cout << "targetXCenter" << targetXCenter << endl;
-	//cout << "Angle to Turn" << targetX << endl;
-	/*cout << "Distance" << distance << endl;
-	cout << "Calculated Angle" << targetX <<endl;
-	cout << "Limelight Angle" << targetXCenter <<endl;
-	//cout << "Offset" << xOffset << endl; */
+
 	if (targetX < -1) {
 		steeringAdjust = Kp * headingError - minCommand;
 	} else if (targetX > 1) {

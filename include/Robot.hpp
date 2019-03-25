@@ -42,6 +42,7 @@ public:
 private:
 
   AHRS *gyro;
+  int count = 0;
 
   float adjust_l = 0.0;
   float adjust_r = 0.0;
@@ -89,6 +90,7 @@ private:
 
   bool is_pot_zero = false;
 
+  
   Timer timer_climb_double_tap;
 
   float climb_double_tap_time_frame;

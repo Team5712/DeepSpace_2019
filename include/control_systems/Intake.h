@@ -16,6 +16,7 @@ class Intake
 {
     WPI_VictorSPX *intake;
     frc::Solenoid *beak;
+    
 
     float intake_power = -0.6;
     float release_power = 0.8;

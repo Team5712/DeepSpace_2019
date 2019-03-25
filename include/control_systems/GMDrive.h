@@ -30,6 +30,8 @@ class GMDrive
 	void driveSetInches(float, float);
 	void driveSetFeet(float, float);
 
+	void setPositionTicks(float, float);
+	void setPositionInches(float, float);
 
 	void ConfigMotionCruiseVelocityLeft(float);
 	void ConfigMotionCruiseVelocityRight(float);
@@ -50,6 +52,7 @@ class GMDrive
 
 	void initPID();
 
+	const float ratio = (4196 + 4122) / 48;
   private:
 	//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	// Ticks per revolution / circumference of the wheel (inches)
@@ -58,8 +61,8 @@ class GMDrive
 	// multiply this number by the number of inches you want to go
 	// to get your desired amout of ticks
 	//.......................................................................................
-	const float ratio = (515 / (2 * 2 * M_PI));
-
+	// 4196 (256 / (2 * 3 * 3.14159))
+	
 	WPI_TalonSRX *l_master;
 	WPI_TalonSRX *r_master;
 
@@ -67,6 +70,8 @@ class GMDrive
 	rev::CANSparkMax *l_slave2;
 	rev::CANSparkMax *r_slave1;
 	rev::CANSparkMax *r_slave2;
+
+	// left -34556 right -36050 
 
 	frc::Solenoid *shifter;
 
@@ -98,8 +103,18 @@ class GMDrive
 		float r_scale = 1.0;
 
 		float gyro_min = 4.0;
-		float gyro_Kp = 9.0;
 		int gyro_skip = 2;
+		float gyro_Kp = 1.0;
+
+		float left_prev_error = 0;
+		float right_prev_error = 0;
+
+		float left_i_state = 0;
+		float right_i_state = 0;
+		float i_zone = 0;
+
+		float min_output = -1.0;
+		float max_output = 1.0;
 
 		// ticks / 100 ms / second
 		float accel = this->max_speed * 1.0;
@@ -107,10 +122,10 @@ class GMDrive
 		float vel = this->max_speed * 1.0;
 		// % * constant / error
 		// (1.00 * 128) / 250 = 0.512
-		const float Kp = 1.0;
+		const float Kp = 0.0001655;
 		const float Ki = 0.0;
 		const float Kz = 0.0;
-		const float Kd = 0.0;
+		const float Kd = 0.00135;
 		//
 		const float Kf = (0.0);
 		const float timeout = 0.005;

@@ -25,7 +25,7 @@ public:
 	float gyro_correction = 0;
 
     float pitch_error = 0;
-    float pitch_Kp = 0.055;
+    float pitch_Kp = 0.070;
 
     float pitch_zero;
 

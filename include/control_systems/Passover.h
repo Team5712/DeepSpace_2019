@@ -39,13 +39,14 @@ public:
 
   void setPiston(bool);
 
-  // 15.5, 27.5
-  float max_front = 57.5; //15.5
-  float max_back = 45;    //26.5
+  // COMP front FRONT 21 BACK 14
+  // PRACTICE FRONT: 56 BACK 44
+  float max_front = 40;  
+  float max_back = 28;  
 
-  float setpoint_front = 56;
-  float setpoint_back = 45;
-  float setpoint_middle = 50;
+  float setpoint_front = 40; //56
+  float setpoint_back = 34; //45
+  float setpoint_middle = 28; //18
 
   float setpoint_angle = 0.0;
 

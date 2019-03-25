@@ -38,7 +38,7 @@ class Elevator
     struct elevator_pid {
       float prev_error = 0;
       float Kminoutput = -0.205;
-      float Kmaxoutput = 0.70;
+      float Kmaxoutput = 0.50;
       float i_state = 0;
       float Kp = 0.065;
       float Ki = 0.0;

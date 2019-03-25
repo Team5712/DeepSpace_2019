@@ -16,8 +16,6 @@ void Robot::RobotInit()
 	int r_ids[3] = {4, 5, 6};
 	drive = new GMDrive(l_ids, r_ids);
 
-	//shifter = new Solenoid(2);
-
 	joystick_l = new frc::Joystick(0);
 	joystick_r = new frc::Joystick(1);
 	joystick_aux = new frc::Joystick(2);
@@ -34,20 +32,12 @@ void Robot::RobotInit()
 	passover = new Passover();
 
 	vision_tracking = new Tracking();
+	drive->resetEncoders();
 	cout << "Robot init complete " << endl;
 }
 
 void Robot::handleDriverInput()
 {
-
-	// if (joystick_l->GetRawButton(driver_buttons["trigger"]))
-	// {
-	// 	shifter->Set(false);
-	// }
-	// else
-	// {
-	// 	shifter->Set(true);
-	// }
 
 	// VISION TAPE
 	if (joystick_l->GetRawButton(driver_buttons["middle"]))
@@ -115,7 +105,7 @@ void Robot::handleAuxiliaryInput()
 	//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	//	Buttons for climbing switches on the toggle button: left_trigger
 	//.................................................................................
-	if (joystick_aux->GetRawButtonPressed(aux_buttons["left_bumper"]))
+	if (joystick_aux->GetRawButtonPressed(aux_buttons["left_bumper"]) )
 	{
 		cout << "LEFT BUMPER" << endl;
 		is_climbing_second = !is_climbing_second;
@@ -218,7 +208,7 @@ void Robot::handleAuxiliaryInput()
 		}
 		else if (joystick_aux->GetRawButton(aux_buttons["y"]))
 		{
-			elevator->setPosition(77);
+			elevator->setPosition(74);
 		}
 		else if (joystick_aux->GetRawButton(aux_buttons["a"]) && elevator->getPosition() > 10)
 		{
@@ -242,13 +232,13 @@ void Robot::handleAuxiliaryInput()
 			intake->updateBeak(false);
 		}
 
-		if(joystick_aux->GetRawButton(aux_buttons["back"])) {
-			intake->intakeBall();
-		} else if(joystick_aux->GetRawButton(aux_buttons["start"])) {
-			intake->releaseBall();
-		} else {
-			intake->releaseBall();
-		}
+		// if(joystick_aux->GetRawButton(aux_buttons["back"])) {
+		// 	intake->intakeBall();
+		// } else if(joystick_aux->GetRawButton(aux_buttons["start"])) {
+		// 	intake->releaseBall();
+		// } else {
+		// 	intake->releaseBall();
+		// }
 	}
 }
 
@@ -264,6 +254,7 @@ void Robot::AutonomousInit()
 	gyro_correction->zeroPitch();
 	compressor->Start();
 	gyro->ZeroYaw();
+	timer_climber.Start();
 	drive->resetEncoders();
 	climber->resetEncoders();
 	is_climbing_second = false;
@@ -287,14 +278,15 @@ void Robot::AutonomousPeriodic()
 	//drive->ConfigMotionCruiseVelocityDifferenceLeft(gyro_adjust_values[0]);
 	//drive->ConfigMotionCruiseVelocityDifferenceRight(gyro_adjust_values[1]);
 
-	cout << "left " << drive->getLeftTicks() << " right " << drive->getRightTicks() << endl;
-	drive->setPositionInches(36, 36);
+	// cout << "left " << drive->getLeftTicks() << " right " << drive->getRightTicks() << endl;
+	//drive->setPositionInches(36, 36);
 	// TODO: UNCOMMENT THIS
-	//  update();
+	 update();
 }
 
 void Robot::TeleopInit()
 {
+	climber->resetEncoders();
 	is_climbing_second = false;
 	is_climbing_third = false;
 	is_climbing_complete = false;
@@ -307,7 +299,7 @@ void Robot::TeleopInit()
 void Robot::TeleopPeriodic()
 {	
 	//cout << "passover " << passover->getPosition() << endl;
-	//climber->printEncoders();
+	climber->printEncoders();
 	// cout << "left " << drive->getLeftTicks() << " right " << drive->getRightTicks() << endl;
 	update();
 }

@@ -11,8 +11,8 @@ Climber::Climber()
 	front_lift = new WPI_TalonSRX(8);
 	low_rider = new WPI_VictorSPX(9);
 
-	front_lift->SetSensorPhase(false);
-	back_lift->SetSensorPhase(false);
+	front_lift->SetSensorPhase(true);
+	back_lift->SetSensorPhase(true);
 }
 
 void Climber::setLiftPower(float front, float back)

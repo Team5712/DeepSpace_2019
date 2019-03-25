@@ -59,7 +59,7 @@ void Elevator::setPosition(float setpoint) {
     cout << "final output" << final_output << endl;
 
     //COMP BOT IS NEGATIVE
-    setPower(final_output);
+    setPower(-final_output);
 }
 
 
