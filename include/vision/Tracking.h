@@ -54,6 +54,17 @@ public:
 
 	void logLimelightValue(std::string);
 
+	struct drive_assist {
+
+		float Kp = -0.0195f;
+		float Ki;
+		float Kd = 0.030;
+		float i_zone = 0;
+		float i_state = 0;
+		float prev_err = 0;
+		float setpoint = -2;
+	} pid;
+
 
 	int current_pipeline;
 

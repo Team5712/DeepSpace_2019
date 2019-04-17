@@ -9,7 +9,7 @@ using namespace std;
 
 Intake::Intake() {
 	cout << "intake initialized" << endl;
-    intake = new WPI_VictorSPX(13);
+    intake = new rev::SparkMax(8);
 
     beak = new Solenoid(1);
 }
@@ -28,6 +28,14 @@ void Intake::releaseBall() {
 
 void Intake::stopIntake() {
     intake->Set(0);
+}
+
+void Intake::holdBall() {
+    intake->Set(hold_power);
+}
+
+void Intake::pushBall() {
+        intake->Set(push_power);
 }
 
 void Intake::updateBeak(bool update) {

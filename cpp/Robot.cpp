@@ -11,14 +11,16 @@ using namespace std;
 void Robot::RobotInit()
 {
 
-	// drive_system = new frc::DifferentialDrive(*l_master, *r_master);
-	int l_ids[3] = {1, 2, 3};
-	int r_ids[3] = {4, 5, 6};
+	int l_ids[3] = {2, 3, 1};
+	int r_ids[3] = {5, 6, 4};
+	// int l_ids[3] = {1, 2, 3};
+	// int r_ids[3] = {4, 5, 6};
 	drive = new GMDrive(l_ids, r_ids);
 
 	joystick_l = new frc::Joystick(0);
 	joystick_r = new frc::Joystick(1);
-	joystick_aux = new frc::Joystick(2);
+	joystick_aux = new frc::Joystick(3);
+	joystick_button_board = new frc::Joystick(2);
 
 	drive->SetSafetyEnabled(false);
 	drive->initPID();
@@ -44,7 +46,7 @@ void Robot::handleDriverInput()
 	{
 		cout << "left middle" << endl;
 
-		vision_tracking->setPipeline(0);
+		// vision_tracking->setPipeline(0);
 
 		// CARGO
 	}
@@ -55,10 +57,10 @@ void Robot::handleDriverInput()
 	}
 	else if (joystick_l->GetRawButton(driver_buttons["left"]))
 	{
-		vector<float> setpoint = vision_tracking->getTurnAdjustmentPercents(1, 0);
+		// vector<float> setpoint = vision_tracking->getTurnAdjustmentPercents(1, 0);
 
-		adjust_l = setpoint[0];
-		adjust_r = setpoint[1];
+		// adjust_l = setpoint[0];
+		// adjust_r = setpoint[1];
 	}
 	else if (joystick_l->GetRawButton(driver_buttons["right"]))
 	{
@@ -79,22 +81,20 @@ void Robot::handleDriverInput()
 	else if (joystick_r->GetRawButton(driver_buttons["right"]))
 	{
 		cout << "right button pressed" << endl;
-		//drive straight
-		//drive->TankDrive(-0.5, -0.5, true);
-		//drive->driveSetInches(24,24);
 
-		// vector<float> setpoint = vision_tracking->getTurnAdjustmentPercents(0, 1);
+		vector<float> setpoint = vision_tracking->getTurnAdjustmentTicks(1, 0);
 
-		// adjust_l = setpoint[0];
-		// adjust_r = setpoint[1];
+		setpoint_l = setpoint[0];
+		setpoint_r = setpoint[1];
 	}
 	else if (joystick_l->GetRawButton(driver_buttons["trigger"]) && joystick_r->GetRawButton(driver_buttons["trigger"]))
 	{
 		drive->updateShifter(true);
+		is_low = true;
 	}
 	else
 	{
-		// drive->resetEncoders();
+		is_low = false;
 		drive->updateShifter(false);
 	}
 }
@@ -102,143 +102,155 @@ void Robot::handleDriverInput()
 void Robot::handleAuxiliaryInput()
 {
 
-	//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	//	Buttons for climbing switches on the toggle button: left_trigger
-	//.................................................................................
-	if (joystick_aux->GetRawButtonPressed(aux_buttons["left_bumper"]) )
-	{
-		cout << "LEFT BUMPER" << endl;
-		is_climbing_second = !is_climbing_second;
-		is_climber_reset = false;
-	}
-
-	if (joystick_aux->GetRawButtonPressed(aux_buttons["right_bumper"]))
-	{
-		cout << "RIGHT BUMPER" << endl;
-		is_climbing_third = !is_climbing_third;
-		is_climber_reset = false;
-	}
-
-	// if (joystick_aux->GetRawButton(aux_buttons["back"]))
-	// {
-	// 	if (!is_climber_reset)
-	// 	{
-	// 		if (resetClimber())
-	// 		{
-	// 			is_climber_reset = true;
-	// 		}
-	// 	}
-	// }
-
-
+	// TODO: check this thing
 	if (is_climbing_second || is_climbing_third)
 	{
 		compressor->Stop();
-		handleClimb();
+		climb();
 	}
 	else
 	{
-		// if(joystick_aux->GetRawButtonPressed(aux_buttons["start"])) {
-		// 	timer_climb_double_tap.Start();
 
-		// 	// if(timer_climb_double_tap.Get() < ) {
-
-		// 	// }
-		// }
-
-		// cout << passover->getPosition() << endl;
-		// passover->setPosition(passover->setpoint_middle);
-		// if (joystick_aux->GetRawAxis(aux_axis["left_y"]) < -0.85) {
-		// 	passover->setPosition(passover->setpoint_front);
-		// } else if(joystick_aux->GetRawAxis(aux_axis["left_y"]) > 0.85) {
-		// 	passover->setPosition(passover->setpoint_back);
-		// }
-		// cout << "pot " << passover->getPosition() << endl;
-
-		// if (joystick_aux->GetRawAxis(aux_axis["right_y"]) < -0.05)
-		// {
-		// 	left_intake->Set(joystick_aux->GetRawAxis(aux_axis["right_y"]));
-		// 	right_intake->Set(joystick_aux->GetRawAxis(aux_axis["right_y"]));
-		// }
-		// else if (joystick_aux->GetRawAxis(aux_axis["right_y"]) > 0.05)
-		// {
-		// 	left_intake->Set(joystick_aux->GetRawAxis(aux_axis["right_y"]));
-		// 	right_intake->Set(joystick_aux->GetRawAxis(aux_axis["right_y"]));
-		// }
-		// else
-		// {
-		// 	left_intake->Set(0);
-		// 	right_intake->Set(0);
-		// }
-
-		if (joystick_aux->GetRawAxis(aux_axis["left_y"]) < -0.2)
+		// cargo mode
+		if (!joystick_button_board->GetRawButton(10))
 		{
-			//cout << joystick_aux->GetRawAxis(aux_axis["left_y"]) / 2 << endl;
-			passover->setPower(joystick_aux->GetRawAxis(aux_axis["left_y"]) / 1.5);
+			if (joystick_button_board->GetRawButton(3))
+			{
+				elevator->setPosition(elevator->positions.bottom);
+				passover->sendPassoverFront();
+			}
+			else if (joystick_button_board->GetRawButton(4))
+			{
+				elevator->setPosition(elevator->positions.bottom + elevator->positions.cargo_offset);
+				passover->sendPassoverBack();
+			}
+			else if (joystick_button_board->GetRawButton(5))
+			{
+				passover->sendPassoverMiddle();
+			}
+			else if (joystick_button_board->GetRawButton(6))
+			{
+				elevator->setPosition(elevator->positions.middle + 5);
+				passover->sendPassoverFront();
+			}
+			else if (joystick_button_board->GetRawButton(7))
+			{
+				elevator->setPosition(elevator->positions.middle + elevator->positions.cargo_offset);
+				passover->sendPassoverBack();
+			}
+			else if (joystick_button_board->GetRawButton(8))
+			{
+				// elevator->setPosition(elevator->positions.top);
+				// passover->sendPassoverFrontCargo();
+			}
+			else if (joystick_button_board->GetRawButton(9))
+			{
+				elevator->setPosition(elevator->positions.top + elevator->positions.cargo_offset);
+				passover->sendPassoverBack();
+			}
+			else
+			{
+				elevator->setPower(0);
+				passover->setPower(0);
+			}
 		}
-		else if (joystick_aux->GetRawAxis(aux_axis["left_y"]) > 0.2)
+		// hatch mode
+		else
 		{
-			//cout << joystick_aux->GetRawAxis(aux_axis["left_y"]) / 2 << endl;cout << joystick_aux->GetRawAxis(aux_axis["left_y"]) / 2 << endl;
-			passover->setPower(joystick_aux->GetRawAxis(aux_axis["left_y"]) / 1.5);
+			if (joystick_button_board->GetRawButton(3))
+			{
+				elevator->setPosition(elevator->positions.bottom);
+				passover->sendPassoverFront();
+			}
+			else if (joystick_button_board->GetRawButton(4))
+			{
+				elevator->setPosition(elevator->positions.bottom);
+				passover->sendPassoverBack();
+			}
+			else if (joystick_button_board->GetRawButton(5))
+			{
+				passover->sendPassoverMiddle();
+			}
+			else if (joystick_button_board->GetRawButton(6))
+			{
+				elevator->setPosition(elevator->positions.middle);
+				passover->sendPassoverFront();
+			}
+			else if (joystick_button_board->GetRawButton(7))
+			{
+				elevator->setPosition(elevator->positions.middle);
+				passover->sendPassoverBack();
+			}
+			else if (joystick_button_board->GetRawButton(8))
+			{
+				elevator->setPosition(elevator->positions.top);
+				passover->sendPassoverFront();
+			}
+			else if (joystick_button_board->GetRawButton(9))
+			{
+				elevator->setPosition(elevator->positions.top);
+				passover->sendPassoverBack();
+			}
+			else
+			{
+				elevator->setPower(0);
+				passover->setPower(0);
+			}
+		}
+
+		// run intake outwards so we don't pick up a cargo while at hatch pick up
+		if (joystick_button_board->GetRawButton(10) && elevator->getPosition() <= elevator->positions.bottom && passover->isPolarized())
+		{
+			intake->pushBall();
 		}
 		else
 		{
-			passover->setPower(0);
+			intake->stop();
 		}
 
-		if (joystick_aux->GetPOV() == aux_buttons["pov_top"])
+		// true is hatch
+		if (joystick_button_board->GetRawButton(2) && joystick_button_board->GetRawButton(10))
 		{
-			passover->sendPassoverFront();
-		}
-		else if (joystick_aux->GetPOV() == aux_buttons["pov_right"])
-		{
-		}
-		else if (joystick_aux->GetPOV() == aux_buttons["pov_left"])
-		{
-			passover->sendPassoverMiddle();
-		}
-		else if (joystick_aux->GetPOV() == aux_buttons["pov_bottom"])
-		{
-			passover->sendPassoverBack();
-		}
-
-		if (joystick_aux->GetRawButton(aux_buttons["b"]))
-		{
-			elevator->setPosition(42);
-		}
-		else if (joystick_aux->GetRawButton(aux_buttons["y"]))
-		{
-			elevator->setPosition(74);
-		}
-		else if (joystick_aux->GetRawButton(aux_buttons["a"]) && elevator->getPosition() > 10)
-		{
-			elevator->setPosition(5);
-		}
-		else if (joystick_aux->GetRawButton(aux_buttons["x"]))
-		{
-			elevator->setPosition(15);
-		}
-		else
-		{
-			elevator->setPower(0);
-		}
-
-		if (joystick_aux->GetRawButton(aux_buttons["left_click"]) || joystick_r->GetRawButton(driver_buttons["middle"]))
-		{
+			passover->setPiston(false);
 			intake->updateBeak(true);
 		}
-		else
+		else if (joystick_button_board->GetRawButton(10))
 		{
+			if (piston_timeout.Get() > 4)
+			{
+				passover->setPiston(true);
+			}
+			else
+			{
+				passover->setPiston(false);
+			}
 			intake->updateBeak(false);
 		}
+		else
+		{
+			passover->setPiston(false);
+			intake->updateBeak(true);
+		}
 
-		// if(joystick_aux->GetRawButton(aux_buttons["back"])) {
-		// 	intake->intakeBall();
-		// } else if(joystick_aux->GetRawButton(aux_buttons["start"])) {
-		// 	intake->releaseBall();
-		// } else {
-		// 	intake->releaseBall();
-		// }
+		// CARGO MODE
+		if (joystick_button_board->GetRawButton(1) && !joystick_button_board->GetRawButton(10))
+		{
+			is_holding_ball = true;
+			intake->intakeBall();
+		}
+		else if (joystick_button_board->GetRawButton(2) && !joystick_button_board->GetRawButton(10))
+		{
+			is_holding_ball = false;
+			intake->releaseBall();
+		}
+		else if (!joystick_button_board->GetRawButton(10) && is_holding_ball)
+		{
+			intake->holdBall();
+		}
+		else
+		{
+			intake->stop();
+		}
 	}
 }
 
@@ -248,6 +260,18 @@ void Robot::RobotPeriodic()
 
 void Robot::AutonomousInit()
 {
+	piston_timeout.Start();
+
+	is_climbing_second = false;
+	is_climbing_third = false;
+	is_climbing_complete = false;
+	is_back_raised = false;
+	is_front_raised = false;
+	is_raising_back = false;
+	is_raising_front = false;
+
+	auto_state = 0;
+
 	cout << "starting auto" << endl;
 	gyro->ZeroYaw();
 	gyro->ResetDisplacement();
@@ -257,36 +281,100 @@ void Robot::AutonomousInit()
 	timer_climber.Start();
 	drive->resetEncoders();
 	climber->resetEncoders();
-	is_climbing_second = false;
-	is_climbing_third = false;
-	is_climbing_complete = false;
-	is_back_raised = false;
-	is_front_raised = false;
-	is_raising_back = false;
-	is_raising_front = false;
-	
 }
 
 void Robot::AutonomousPeriodic()
 {
-	//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	// Get adjustment values in order to make the robot drive more straight by adjusting
-	// the cruise velocity in the pid loop according to the offset of the gyro
-	//..................................................................................
-	// vector<float> gyro_adjust_values = gyro_correction->adjustDrive();
+	// turn ratio 0.4
 
-	//drive->ConfigMotionCruiseVelocityDifferenceLeft(gyro_adjust_values[0]);
-	//drive->ConfigMotionCruiseVelocityDifferenceRight(gyro_adjust_values[1]);
+	// if (joystick_r->GetRawAxis(2) < 0)
+	// {
+	// 	switch (auto_state)
+	// 	{
+	// 	case 0:
+	// 		if (drive->setPositionTicks(55, 55))
+	// 		{
+	// 			auto_state++;
+	// 			auto_transition_timer.Start();
+	// 		}
 
-	// cout << "left " << drive->getLeftTicks() << " right " << drive->getRightTicks() << endl;
-	//drive->setPositionInches(36, 36);
-	// TODO: UNCOMMENT THIS
-	 update();
+	// 		break;
+	// 	case 1:
+	// 		if (auto_transition_timer.Get() > 1)
+	// 		{
+	// 			cout << "left " << drive->getLeftTicks() << " right " << drive->getRightTicks() << endl;
+	// 			if (drive->setPositionTicks(-11.4, 11.4))
+	// 			{
+	// 				auto_state++;
+	// 				cout << "turn complete" << endl;
+	// 			}
+	// 		}
+	// 		else
+	// 		{
+	// 			drive->resetEncoders();
+	// 		}
+
+	// 		break;
+	// 	case 2:
+	// 		update();
+	// 		break;
+	// 	}
+	// }
+	// else if (joystick_l->GetRawAxis(2) < 0)
+	// {
+	// 	switch (auto_state)
+	// 	{
+	// 	case 0:
+	// 		if (drive->setPositionTicks(55, 55))
+	// 		{
+	// 			auto_state++;
+	// 			auto_transition_timer.Start();
+	// 		}
+
+	// 		break;
+	// 	case 1:
+	// 		if (auto_transition_timer.Get() > 1)
+	// 		{
+	// 			cout << "left " << drive->getLeftTicks() << " right " << drive->getRightTicks() << endl;
+	// 			if (drive->setPositionTicks(11.4, -11.4))
+	// 			{
+	// 				auto_state++;
+	// 				cout << "turn complete" << endl;
+	// 			}
+	// 		}
+	// 		else
+	// 		{
+	// 			drive->resetEncoders();
+	// 		}
+
+	// 		break;
+
+	// 	case 2:
+	// 		update();
+	// 		break;
+	// 	}
+	// }
+	// else
+	// {
+	// 	update();
+	// }
+
+
+	drive->setPositionTicks(-7.8, 7.8);
+	// drive->turnLeft();
+	
+	cout << "left " << drive->getLeftTicks() << " right " << drive->getRightTicks() << endl;
+	// cout << "yaw " << gyro_correction->getYaw() << endl;
+
+	drive->setPositionTicks(66, 66);
+
+	// drive->TankDrive(0.2, -0.2, false);
+
+	// update();
 }
 
 void Robot::TeleopInit()
 {
-	climber->resetEncoders();
 	is_climbing_second = false;
 	is_climbing_third = false;
 	is_climbing_complete = false;
@@ -294,20 +382,33 @@ void Robot::TeleopInit()
 	is_front_raised = false;
 	is_raising_back = false;
 	is_raising_front = false;
+	// climb_state = CLIMB_STATES::READY;
+	climber->resetEncoders();
 }
 
 void Robot::TeleopPeriodic()
-{	
-	//cout << "passover " << passover->getPosition() << endl;
-	climber->printEncoders();
-	// cout << "left " << drive->getLeftTicks() << " right " << drive->getRightTicks() << endl;
+{
 	update();
 }
 
 void Robot::update()
 {
-	//cout << "left " << drive->getLeftTicks() << " right " << drive->getRightTicks() << endl;
-	passover->setPiston(true);
+
+	if (joystick_button_board->GetRawButton(12))
+	{
+		if (joystick_button_board->GetRawButton(11))
+		{
+			is_climbing_second = true;
+		}
+		else
+		{
+			is_climbing_third = true;
+		}
+	}
+	else
+	{
+		resetClimbValues();
+	}
 
 	handleDriverInput();
 	handleAuxiliaryInput();
@@ -319,15 +420,30 @@ void Robot::update()
 	}
 	else if (setpoint_l != 0 || setpoint_r != 0)
 	{
-		// cout << "going to setpoint" << endl;
+		cout << "going to setpoint L: " << setpoint_l << " right " << setpoint_r << endl;
 		drive->driveSetTicks(setpoint_l, setpoint_r);
 	}
 	else
 	{
-		if (!joystick_r->GetRawButton(driver_buttons["right"])) {
-			drive->TankDrive(joystick_l->GetRawAxis(1) + adjust_l, joystick_r->GetRawAxis(1) + adjust_r, false);
+
+		if (joystick_l->GetRawButton(driver_buttons["middle"]))
+		{
+			drive->TankDrive(joystick_l->GetRawAxis(1) + adjust_l, joystick_l->GetRawAxis(1) + adjust_r, false);
 		}
-		
+		else
+		{
+
+			// cout << "left " << adjust_l << " right " << adjust_r << endl;
+			if (is_low)
+			{
+				drive->TankDrive(joystick_l->GetRawAxis(1) + adjust_l, joystick_r->GetRawAxis(1) + adjust_r, false);
+			}
+			else
+			{
+				drive->TankDrive((1 * joystick_l->GetRawAxis(1)) + adjust_l, (1 * joystick_r->GetRawAxis(1)) + adjust_r, false);
+			}
+		}
+
 		resetDriveValues();
 	}
 }
@@ -341,8 +457,10 @@ void Robot::TestPeriodic()
 {
 }
 
-void Robot::handleClimb()
+void Robot::climb()
 {
+
+	// TODO: STATES CHECK GYRO FOR CLIMB
 	vector<float> values = gyro_correction->adjustClimb();
 
 	// climb until we reach the max point, then stop lifting
@@ -364,16 +482,33 @@ void Robot::handleClimb()
 		}
 	}
 
+	if (!is_climbing_second && !is_climbing_third)
+	{
+		climber->setLiftPower(0, 0);
+	}
+
 	// one we reach the top, sustain both sides until we specify not to with buttons
 	if (is_climbing_complete)
 	{
 
-		climber->setLowRider(joystick_aux->GetRawAxis(aux_axis["left_y"]));
+		if (!is_front_raised && !is_back_raised)
+		{
+			if (joystick_button_board->GetRawAxis(2) < 0)
+			{
+				climber->setLowRider(-0.25);
+			}
+			else
+			{
+				// cout << "joy " << -abs(joystick_button_board->GetRawAxis(2)) - 0.25 << endl;
+				climber->setLowRider(-abs(joystick_button_board->GetRawAxis(2)) - 0.25 + (joystick_button_board->GetRawAxis(2) * 0.24));
+			}
+		}
+		else
+		{
+			climber->setLowRider(0);
+		}
 
 		// TODO make sure raising is done
-
-		// is_raising_back = true;
-		// is_raising_front = true;
 
 		// the front is no longer lowered, start raising it
 		if (is_raising_front)
@@ -422,38 +557,29 @@ void Robot::handleClimb()
 			climber->sustainBack();
 		}
 
-		if (joystick_aux->GetRawAxis(aux_axis["left_trigger"]) > 0.85)
+		if (joystick_button_board->GetRawButton(14))
 		{
-			cout << "left" << endl;
+			cout << "RAISING FRONT" << endl;
 			is_raising_front = true;
 		}
 
-		if (joystick_aux->GetRawAxis(aux_axis["right_trigger"]) > 0.85)
+		if (joystick_button_board->GetRawButton(13))
 		{
-			cout << "right" << endl;
+			cout << "RAISING BACK" << endl;
 			is_raising_back = true;
 		}
 	}
 }
 
-bool Robot::resetClimber()
+bool Robot::resetClimbValues()
 {
-	is_climbing_second = false;
 	is_climbing_third = false;
+	is_climbing_second = false;
 	is_climbing_complete = false;
-	is_back_raised = false;
-	is_front_raised = false;
-	is_raising_back = false;
 	is_raising_front = false;
-
-	if (climber->raiseFront() && climber->raiseBack())
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+	is_raising_back = false;
+	is_front_raised = false;
+	is_back_raised = false;
 }
 
 void Robot::resetDriveValues()

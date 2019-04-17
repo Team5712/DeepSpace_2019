@@ -30,7 +30,7 @@ class GMDrive
 	void driveSetInches(float, float);
 	void driveSetFeet(float, float);
 
-	void setPositionTicks(float, float);
+	bool setPositionTicks(float, float);
 	void setPositionInches(float, float);
 
 	void ConfigMotionCruiseVelocityLeft(float);
@@ -48,9 +48,14 @@ class GMDrive
 	float getRightTicks();
 	float getLeftTicks();
 
+	bool turnLeft();
+	bool turnRight();
+
 	void updateShifter(bool);
 
 	void initPID();
+
+	int margin_distance = 2.5;
 
 	const float ratio = (4196 + 4122) / 48;
   private:
@@ -63,8 +68,10 @@ class GMDrive
 	//.......................................................................................
 	// 4196 (256 / (2 * 3 * 3.14159))
 	
-	WPI_TalonSRX *l_master;
-	WPI_TalonSRX *r_master;
+	//WPI_TalonSRX *l_master;
+	//WPI_TalonSRX *r_master;
+	rev::CANSparkMax *l_master;
+	rev::CANSparkMax *r_master;
 
 	rev::CANSparkMax *l_slave1;
 	rev::CANSparkMax *l_slave2;
@@ -113,8 +120,8 @@ class GMDrive
 		float right_i_state = 0;
 		float i_zone = 0;
 
-		float min_output = -1.0;
-		float max_output = 1.0;
+		float min_output = -0.5;
+		float max_output = 0.5;
 
 		// ticks / 100 ms / second
 		float accel = this->max_speed * 1.0;
@@ -122,10 +129,10 @@ class GMDrive
 		float vel = this->max_speed * 1.0;
 		// % * constant / error
 		// (1.00 * 128) / 250 = 0.512
-		const float Kp = 0.0001655;
+		const float Kp = 0.0325;
 		const float Ki = 0.0;
 		const float Kz = 0.0;
-		const float Kd = 0.00135;
+		const float Kd = 0.00775;
 		//
 		const float Kf = (0.0);
 		const float timeout = 0.005;

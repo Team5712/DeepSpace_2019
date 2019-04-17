@@ -20,12 +20,13 @@ public:
     void zeroPitch();
     vector<float> adjustDrive();
     vector<float> adjustClimb();
+    float getYaw();
 
 	float gyro_error = 0;
 	float gyro_correction = 0;
 
     float pitch_error = 0;
-    float pitch_Kp = 0.070;
+    float pitch_Kp = 0.10;
 
     float pitch_zero;
 

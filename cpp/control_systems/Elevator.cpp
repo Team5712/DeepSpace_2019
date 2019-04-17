@@ -31,7 +31,7 @@ void Elevator::setPosition(float setpoint) {
 
     // error is the distance from where we want to go from where we are now
     float error = setpoint - pot->Get();
-    cout << "pot " << pot->Get() << endl;
+    // cout << "pot " << pot->Get() << endl;
 
     // calculate proportion value
     float p = pid.Kp * error;
@@ -55,20 +55,19 @@ void Elevator::setPosition(float setpoint) {
     float output = p + pid.i_state + d + f;
 
     // make sure the output is not greater than our max or less than our min
-    float final_output = -fminf(fmaxf(output, pid.Kminoutput), pid.Kmaxoutput);
-    cout << "final output" << final_output << endl;
+    float final_output = fminf(fmaxf(output, pid.Kminoutput), pid.Kmaxoutput);
+    // cout << "final output" << final_output << endl;
 
-    //COMP BOT IS NEGATIVE
-    setPower(-final_output);
+    // TODO: COMP BOT IS POSITIVE, PRAC IS NEGATIVE
+    setPower(final_output);
 }
 
 
 void Elevator::setPower(float power) {
-    // cout << elevator_master->
-    if (pot->Get() < max_height) {
-        elevator_master->Set(power);
-    } else {
-        cout << "POT " << pot->Get() << endl;
+    // cout << "power " << power << " pot " << pot->Get() << endl;
+    if(pot->Get() < 10.5 && power < 0) {
         elevator_master->Set(0);
+    } else { 
+        elevator_master->Set(power);
     }
 }

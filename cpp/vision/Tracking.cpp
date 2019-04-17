@@ -28,16 +28,38 @@ vector<float> Tracking::getTurnAdjustmentPercents(int camera, int pipeline) {
 	float headingError = -targetX;
 	float steeringAdjust = 0.0f;
 	float minCommand = 0.04;
-	float Kp = -0.0047f; //.0075
+	float Kp = -0.0028f; //.0075
 	float leftCommand;
 	float rightCommand;
-	//cout << "targerA" << targetA << endl;
-	cout << "targetX" << targetX << endl;
 
-	if (targetX < -1) {
-		steeringAdjust = Kp * headingError - minCommand;
-	} else if (targetX > 1) {
-		steeringAdjust = Kp * headingError + minCommand;
+	
+    // error is the distance from where we want to go from where we are now
+    float error = pid.setpoint - targetX;
+    // cout << "pot " << pot->Get() << endl;
+
+    // calculate proportion value
+    float p = pid.Kp * error;
+
+    // i_zone for perfecting distance to target
+    if(fabsf(error) <= pid.i_zone || pid.i_zone == 0.0f) {
+        pid.i_state = pid.i_state + (error * pid.Ki);
+    } else {
+        pid.i_state = 0;
+    }
+
+    float d = (error - pid.prev_err);
+    pid.prev_err = error;
+    d *= pid.Kd;
+
+    float output = p + pid.i_state + d;
+
+
+	if (targetX < -3.5) {
+		steeringAdjust = output - minCommand;
+		// cout << "target to the left " << endl;
+	} else if (targetX > -1.5) {
+		// cout << "target to the right " << endl;
+		steeringAdjust = output + minCommand;
 	}
 	//CHANGE SIGNS NEED TO TEST
 	leftCommand -= steeringAdjust;
@@ -51,9 +73,8 @@ vector<float> Tracking::getTurnAdjustmentPercents(int camera, int pipeline) {
 
 vector<float> Tracking::getTurnAdjustmentTicks(int camera, int pipeline) {
 
-	this->setPipeline(pipeline);
+	// this->setPipeline(pipeline);
 	std::shared_ptr<NetworkTable> table;
-
 
 	if(camera == 0) {
 		table = nt::NetworkTableInstance::GetDefault().GetTable("limelight-one");
@@ -94,15 +115,17 @@ float Tracking::getDriveFromSetPointTicks(float net_distance) {
 	//float targetA = table->GetNumber("ta", 0);
 
 	// y = a*b^x+c
-	
+	float targetA = table->GetNumber("ta", 0);
 
 	
 	//const float distance = 304 / targetW;
-	//float distance = log((targetA-.0344202)/1.68221)/log(.759274)*asin(.86);
+	float distance = log((targetA-.0344202)/1.68221)/log(.759274)*asin(.86);
 	//float xOffset = sqrt(pow(log((targetA-.0344202)/1.68221)/log(.759274)*asin(.86),2)-pow(log((targetA-.0344202)/1.68221)/log(.759274),2));
 	//return (distance * 12 * ratio) - (net_distance * ratio);
 	//return distance;
 	//return xOffset;
+	cout << "dist " << distance << endl;
+	return distance;
 }
 
 void Tracking::setPipeline(int pipeline) {

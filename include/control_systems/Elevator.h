@@ -35,10 +35,17 @@ class Elevator
 
     void setPower(float);
 
+    struct ElevatorPositions {
+      const float bottom = 5;
+      const float middle = 42;
+      const float top = 74;
+      const float cargo_offset = -5;
+    } positions;
+
     struct elevator_pid {
       float prev_error = 0;
       float Kminoutput = -0.205;
-      float Kmaxoutput = 0.50;
+      float Kmaxoutput = 0.65;
       float i_state = 0;
       float Kp = 0.065;
       float Ki = 0.0;

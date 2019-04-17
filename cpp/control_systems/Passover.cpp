@@ -4,7 +4,7 @@ using namespace std;
 
 Passover::Passover() {
 
-    motor = new PWMVictorSPX(9);
+    motor = new rev::SparkMax(9);
 
     pot = new AnalogPotentiometer(1, 100, 0); 
 
@@ -13,6 +13,11 @@ Passover::Passover() {
 
 float Passover::getPosition() {
     return pot->Get(); 
+}
+
+void Passover::printPotentiometer() {
+    cout << "potentiometer " << pot->Get() << endl;
+    // cout << "encoder " << motor->Get() << endl;
 }
 
 void Passover::setPosition(float setpoint) {
@@ -43,23 +48,49 @@ void Passover::setPosition(float setpoint) {
 
     // make sure the output is not greater than our max or less than our min
     float final_output = -fminf(fmaxf(output, pid.Kminoutput), pid.Kmaxoutput);
-    cout << "final output" << final_output << endl;
-    cout << "error " << error << endl;
+    // cout << "final output" << final_output << endl;
+    // cout << "error " << error << endl;
 
     setPower(final_output);
 }
 
 
+// TODO: check directions practice, positive is backwards
 void Passover::setPower(float power) {
-    // going to the front TODO: UNCOMMENT THESE
-    // if(power > 0) {
+
+    // if(max_front >) {
+
+    // } 
+
+    // // cout << "power " << power << endl;
+    // cout << "pot " << getPosition() << endl;
+    // motor->Set(power);
+    // going to the front TODO: check these
+    if(power > 0) {
+        if(getPosition() >= max_back) {
+            motor->Set(power);
+        } else {
+            motor->Set(0);
+        }
+        // going to the back
+    } else if(power < 0) {
+        if(getPosition() <= max_front) {
+            motor->Set(power);
+        } else {
+            motor->Set(0);
+        }
+    } else {
+        motor->Set(0);
+    }  
+    //COMP BOT
+    // if(power < 0) {
     //     if(getPosition() <= max_front) {
     //         motor->Set(power);
     //     } else {
     //         motor->Set(0);
     //     }
     //     // going to the back
-    // } else if(power < 0) {
+    // } else if(power > 0) {
     //     if(getPosition() >= max_back) {
     //         motor->Set(power);
     //     } else {
@@ -67,25 +98,23 @@ void Passover::setPower(float power) {
     //     }
     // } else {
     //     motor->Set(0);
-    // }  
-    //COMP BOT
-    if(power < 0) {
-        if(getPosition() <= max_front) {
-            motor->Set(power);
-        } else {
-            motor->Set(0);
-        }
-        // going to the back
-    } else if(power > 0) {
-        if(getPosition() >= max_back) {
-            motor->Set(power);
-        } else {
-            motor->Set(0);
-        }
-    } else {
-        motor->Set(0);
-    }
+    // }
+}
 
+bool Passover::isFront() {
+    if(getPosition() > max_front - polar_range) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool Passover::isBack() {
+    if(getPosition() < max_back + polar_range) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 void Passover::sendPassoverBack() {
@@ -100,22 +129,17 @@ void Passover::sendPassoverMiddle() {
     setPosition(setpoint_middle);
 }
 
-// if(power > 0) {
-//         if(getPosition() /*<= max_front*/) {
-//             motor->Set(power);
-//         } else {
-//             motor->Set(0);
-//         }
-//         // going to the back
-//     } else if(power < 0) {
-//         if(getPosition() /*>= max_back*/) {
-//             motor->Set(power);
-//         } else {
-//             motor->Set(0);
-//         }
-//     } else {
-//         motor->Set(0);
-//     }
+void Passover::sendPassoverFrontCargo() {
+    setPosition(setpoint_front_cargo);
+}
+
+bool Passover::isPolarized() {
+    if(getPosition() > max_front - 2 || getPosition() < max_back + 2) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
 void Passover::setPiston(bool postition) {
     piston->Set(postition);
